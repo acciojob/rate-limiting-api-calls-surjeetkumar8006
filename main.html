@@ -1,47 +1,14 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Rate Limiting API Calls</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
+  <head>
+    <title>Rate Limiting API Calls</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <button id="fetch-button">Fetch Data</button>
+    <span id="click-count">0</span>
+    <div id="results"></div>
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #count {
-      font-weight: bold;
-      margin-left: 10px;
-      color: darkblue;
-    }
-
-    #results {
-      margin-top: 20px;
-      display: inline-block;
-      text-align: left;
-    }
-
-    .item {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      background: #f7f7f7;
-    }
-  </style>
-</head>
-<body>
-  <button id="fetchBtn">Fetch Data</button>
-  <span>Click Count: <span id="count">0</span></span>
-
-  <div id="results"></div>
-
-  <script src="./script.js"></script>
-</body>
+    <script src="./script.js"></script>
+  </body>
 </html>

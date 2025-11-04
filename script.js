@@ -1,57 +1,60 @@
-const fetchBtn = document.getElementById("fetchBtn");
-const countDisplay = document.getElementById("count");
-const resultsDiv = document.getElementById("results");
+const button = document.getElementById("fetch-button");
+const clickCountEl = document.getElementById("click-count");
+const resultsEl = document.getElementById("results");
 
 let clickCount = 0;
-let callQueue = [];
+let apiQueue = [];
+let activeCalls = 0;
 let lastResetTime = Date.now();
-let isProcessing = false;
 
-// Function to fetch and display API data
-async function fetchData() {
-  try {
-    const res = await fetch("https://jsonplaceholder.typicode.com/todos/1");
-    const data = await res.json();
+// Function to fetch data from API
+const fetchData = () => {
+  return fetch("https://jsonplaceholder.typicode.com/todos/1")
+    .then(res => res.json())
+    .then(data => {
+      const div = document.createElement("div");
+      div.textContent = `ID: ${data.id}, Title: ${data.title}, Completed: ${data.completed}`;
+      resultsEl.appendChild(div);
+    });
+};
 
-    const item = document.createElement("div");
-    item.className = "item";
-    item.innerHTML = `
-      <p><strong>ID:</strong> ${data.id}</p>
-      <p><strong>Title:</strong> ${data.title}</p>
-      <p><strong>Completed:</strong> ${data.completed}</p>
-    `;
-    resultsDiv.appendChild(item);
-  } catch (err) {
-    console.error("API Error:", err);
-  }
-}
+// Rate limiter function
+const rateLimiter = () => {
+  const now = Date.now();
 
-// Rate limiter function to process at most 5 requests per 10 seconds
-async function processQueue() {
-  if (isProcessing) return;
-  isProcessing = true;
-
-  while (callQueue.length > 0) {
-    const batch = callQueue.splice(0, 5); // Take 5 requests at a time
-    await Promise.all(batch.map(fn => fn())); // Execute them
-    await new Promise(res => setTimeout(res, 10000)); // Wait 10 seconds before next batch
-  }
-
-  isProcessing = false;
-}
-
-// Button click handler
-fetchBtn.addEventListener("click", () => {
-  clickCount++;
-  countDisplay.textContent = clickCount;
-
-  // Reset count after 10 seconds
-  if (Date.now() - lastResetTime >= 10000) {
+  // Reset click count every 10 seconds
+  if (now - lastResetTime > 10000) {
     clickCount = 0;
-    lastResetTime = Date.now();
+    clickCountEl.textContent = "0";
+    lastResetTime = now;
   }
 
-  // Add the fetch task to the queue
-  callQueue.push(fetchData);
-  processQueue();
-});
+  // If more than 5 clicks in 10 seconds, delay next batch
+  if (clickCount >= 5) {
+    alert("Too many API calls. Please wait and try again.");
+    return;
+  }
+
+  clickCount++;
+  clickCountEl.textContent = clickCount;
+
+  apiQueue.push(fetchData);
+};
+
+// Execute up to 5 API calls per second
+setInterval(() => {
+  if (apiQueue.length > 0 && activeCalls < 5) {
+    const task = apiQueue.shift();
+    activeCalls++;
+    task().finally(() => activeCalls--);
+  }
+}, 200);
+
+// Reset click count after 10 seconds
+setInterval(() => {
+  clickCount = 0;
+  clickCountEl.textContent = "0";
+}, 10000);
+
+// Button click
+button.addEventListener("click", rateLimiter);
